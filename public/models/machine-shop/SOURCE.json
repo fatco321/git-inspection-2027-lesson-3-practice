@@ -1,0 +1,60 @@
+{
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "pack": "https://3dassets.dev/packs/machine-shop-and-factory-hall",
+  "status": "Runtime workshop machines and furniture; original source receipts preserved in assets/reference-models/machine-shop",
+  "files": [
+    {
+      "file": "bench-lathe.glb",
+      "url": "https://cdn.3dassets.dev/assets/27723/v1/model.glb",
+      "source": "https://3dassets.dev/assets/machine-shop-and-factory-hall-machine-shop-and-factory-c5e95c13",
+      "sha256": "4ec562e0db147206bf0aab7019dd2b5b82d29b32fcb9700e7b9065a134d837fd",
+      "bytes": 458348,
+      "extensionsRequired": [
+        "KHR_mesh_quantization"
+      ]
+    },
+    {
+      "file": "pillar-drill.glb",
+      "url": "https://cdn.3dassets.dev/assets/27729/v1/model.glb",
+      "source": "https://3dassets.dev/assets/machine-shop-and-factory-hall-machine-shop-and-factory-a352dcc6",
+      "sha256": "766682ae98f4c87e9c5a1d6f8262387daccb2e0c7b73e73c265d2eed7cefc648",
+      "bytes": 396520,
+      "extensionsRequired": [
+        "KHR_mesh_quantization"
+      ]
+    },
+    {
+      "file": "workbench-vice.glb",
+      "url": "https://cdn.3dassets.dev/assets/27763/v1/model.glb",
+      "source": "https://3dassets.dev/assets/machine-shop-and-factory-hall-machine-shop-and-factory-59baca96",
+      "sha256": "4a7ca10f3a44edd4151ecfc3e28248754a64f944fcd3c18c771ab51060294794",
+      "bytes": 34120,
+      "extensionsRequired": [
+        "EXT_texture_webp",
+        "KHR_mesh_quantization"
+      ]
+    },
+    {
+      "file": "tool-pegboard.glb",
+      "url": "https://cdn.3dassets.dev/assets/27765/v1/model.glb",
+      "source": "https://3dassets.dev/assets/machine-shop-and-factory-hall-machine-shop-and-factory-78b8a83a",
+      "sha256": "ddbafeae3e88e2a986cbadb27c87875e0216633ff668190c1c7925ffaf0070a2",
+      "bytes": 43520,
+      "extensionsRequired": [
+        "EXT_texture_webp",
+        "KHR_mesh_quantization"
+      ]
+    },
+    {
+      "file": "parts-shelving.glb",
+      "url": "https://cdn.3dassets.dev/assets/27766/v1/model.glb",
+      "source": "https://3dassets.dev/assets/machine-shop-and-factory-hall-machine-shop-and-factory-948f4b42",
+      "sha256": "402900acd3cec27a28b04ade632757598b04024d297cce24c96c25890365b2ea",
+      "bytes": 30020,
+      "extensionsRequired": [
+        "KHR_mesh_quantization"
+      ]
+    }
+  ]
+}

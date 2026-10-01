@@ -1,0 +1,48 @@
+{
+  "title": "Workbench with engineer's vice (Machine Shop and Factory Hall)",
+  "url": "https://3dassets.dev/assets/machine-shop-and-factory-hall-machine-shop-and-factory-59baca96",
+  "description": "Two metre workbench: a timber top on a charcoal frame with a lower shelf, a cast engineer's vice at one end whose moving jaw opens, and hand tools laid on the top. Free 3D model for machine shop, factory and industrial game scenes in Unity, Godot, Unreal, three.js and Blender. Overall 2.04 by 1.12 by 0.90 m (X by Y by Z). Metre units, +Y up, the operator side toward +Z, resting on y=0 with the origin on the footprint. Rigid node-transform clips: open and close. No skinning. The vice screw handle, the bench dogs and the tools on the top are solid; only the moving jaw travels.",
+  "license": {
+    "slug": "cc0-1.0",
+    "name": "CC0 1.0 Universal",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attributionRequired": false
+  },
+  "stats": {
+    "fileSize": 34120,
+    "triangles": 284,
+    "vertices": 655,
+    "meshes": 7,
+    "materials": 5,
+    "textures": 1,
+    "animations": [
+      "open",
+      "close"
+    ],
+    "boundingBox": {
+      "min": [
+        -1.0199999809265137,
+        3.848487662083677e-05,
+        -0.4200219654726233
+      ],
+      "max": [
+        1.0199999809265137,
+        1.1200042627563052,
+        0.4840011748945116
+      ]
+    },
+    "sizeMeters": [
+      2.04,
+      1.12,
+      0.904
+    ],
+    "hasDraco": false,
+    "hasMeshopt": false,
+    "hasKTX2": false,
+    "extensionsUsed": [
+      "KHR_mesh_quantization",
+      "EXT_texture_webp"
+    ]
+  },
+  "cdnUrl": "https://cdn.3dassets.dev/assets/27763/v1/model.glb"
+}

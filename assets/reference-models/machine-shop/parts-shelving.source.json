@@ -1,0 +1,44 @@
+{
+  "title": "Parts bin shelving with plastic bins (Machine Shop and Factory Hall)",
+  "url": "https://3dassets.dev/assets/machine-shop-and-factory-hall-machine-shop-and-factory-948f4b42",
+  "description": "Blue shelving 1.2 m wide and 1.9 m tall carrying four rows of open fronted cream and blue picking bins, with a written card on the end frame. Free 3D model for machine shop, factory and industrial game scenes in Unity, Godot, Unreal, three.js and Blender. Overall 1.28 by 2.05 by 0.55 m (X by Y by Z). Metre units, +Y up, the operator side toward +Z, resting on y=0 with the origin on the footprint. Static geometry; no rig, collision or navigation data. Static piece; the bins do not lift out.",
+  "license": {
+    "slug": "cc0-1.0",
+    "name": "CC0 1.0 Universal",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attributionRequired": false
+  },
+  "stats": {
+    "fileSize": 30020,
+    "triangles": 636,
+    "vertices": 1484,
+    "meshes": 4,
+    "materials": 4,
+    "textures": 0,
+    "animations": [],
+    "boundingBox": {
+      "min": [
+        -0.6500407343097473,
+        0,
+        -0.2749899295930784
+      ],
+      "max": [
+        0.6299914564237816,
+        2.052658796310425,
+        0.2749899295930784
+      ]
+    },
+    "sizeMeters": [
+      1.28,
+      2.053,
+      0.55
+    ],
+    "hasDraco": false,
+    "hasMeshopt": false,
+    "hasKTX2": false,
+    "extensionsUsed": [
+      "KHR_mesh_quantization"
+    ]
+  },
+  "cdnUrl": "https://cdn.3dassets.dev/assets/27766/v1/model.glb"
+}

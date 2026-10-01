@@ -1,0 +1,19 @@
+{
+  "source": "https://quaternius.com/packs/ultimatemodularcharacters.html",
+  "download": "https://drive.google.com/file/d/1fzSq1Rr037f7QkfXPWEAzmbLMNx-FpPA/view",
+  "sourceFile": "assets/reference-models/quaternius/adventurer.gltf",
+  "license": "CC0-1.0 (pack page and original 2022 release)",
+  "sourceSha256": "21f7a61afb6bd6cef6961490c367594e3c2fc01ec1f041662131172ce763063e",
+  "sha256": "39a87fe361abf82e54a8d9d99375a082bd4075c22ab83091d3bfb1fe902607f5",
+  "modifications": [
+    "Removed backpack",
+    "Orange cardigan and dark trousers",
+    "Fuller beard and short dark hair",
+    "Glasses, collar and buttons weighted to original skeleton"
+  ],
+  "generator": "tools/blender/build_andrey.py",
+  "editable": "assets/blender/andrey-v1/andrey.blend",
+  "bytes": 2177684,
+  "animations": 24,
+  "role": "Stylized prototype based on supplied reference; not a photorealistic likeness"
+}

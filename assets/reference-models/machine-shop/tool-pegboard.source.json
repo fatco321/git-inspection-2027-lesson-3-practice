@@ -1,0 +1,45 @@
+{
+  "title": "Pegboard tool wall on a stand (Machine Shop and Factory Hall)",
+  "url": "https://3dassets.dev/assets/machine-shop-and-factory-hall-machine-shop-and-factory-78b8a83a",
+  "description": "Free standing pegboard 2 m wide and 1.9 m tall holding spanners, files, hammers and a hand drill on hooks, with a small shelf of tins along the bottom. Free 3D model for machine shop, factory and industrial game scenes in Unity, Godot, Unreal, three.js and Blender. Overall 1.98 by 1.90 by 0.60 m (X by Y by Z). Metre units, +Y up, the operator side toward +Z, resting on y=0 with the origin on the footprint. Static geometry; no rig, collision or navigation data. Static piece; the tools and hooks do not move.",
+  "license": {
+    "slug": "cc0-1.0",
+    "name": "CC0 1.0 Universal",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attributionRequired": false
+  },
+  "stats": {
+    "fileSize": 43520,
+    "triangles": 532,
+    "vertices": 1232,
+    "meshes": 5,
+    "materials": 5,
+    "textures": 1,
+    "animations": [],
+    "boundingBox": {
+      "min": [
+        -0.9900000095367432,
+        2.420408432346477e-06,
+        -0.29998810067111187
+      ],
+      "max": [
+        0.9900000095367432,
+        1.8999975557497097,
+        0.29998810067111187
+      ]
+    },
+    "sizeMeters": [
+      1.98,
+      1.9,
+      0.6
+    ],
+    "hasDraco": false,
+    "hasMeshopt": false,
+    "hasKTX2": false,
+    "extensionsUsed": [
+      "KHR_mesh_quantization",
+      "EXT_texture_webp"
+    ]
+  },
+  "cdnUrl": "https://cdn.3dassets.dev/assets/27765/v1/model.glb"
+}

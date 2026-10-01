@@ -1,0 +1,45 @@
+.practice-ending {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 32px;
+  background: #132936bb;
+  backdrop-filter: blur(10px);
+  animation: ending-appear 0.8s ease both;
+}
+.practice-ending h1 {
+  color: #c2edda;
+  font-size: clamp(28px, 5vw, 44px);
+  margin: 0 0 18px;
+}
+.practice-ending p {
+  max-width: 540px;
+  color: #e2eee8;
+  font-size: 20px;
+  line-height: 1.6;
+  margin: 0;
+}
+@keyframes ending-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .practice-ending {
+    animation: none;
+  }
+}
+
+.practice-ending--departure{background:#101c25;backdrop-filter:none;animation-duration:1.1s;}
+
+.practice-ending--reveal{animation:destination-reveal 1.1s ease forwards;pointer-events:none;}
+@keyframes destination-reveal{to{opacity:0;visibility:hidden;}}
