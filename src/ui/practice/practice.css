@@ -62,3 +62,5 @@
 .captured-photo{position:absolute;left:15%;top:18%;width:70%;height:64%;object-fit:contain;background:#143540;border:3px solid #beded4;border-radius:8px;box-shadow:0 12px 40px #0007;box-sizing:border-box;transform-origin:top left;pointer-events:none;z-index:20}
 
 .practice-panel.camera-disabled{background:#10191e;}
+
+.practice-panel{overscroll-behavior:contain}

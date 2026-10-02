@@ -148,3 +148,5 @@
 
 .dialogue-window{top:72px;transform:translateX(-50%);max-height:calc(100dvh - 96px)}
 .dialogue-window.tablet-opening{visibility:hidden;pointer-events:none}
+
+.dialogue-window{overscroll-behavior:contain}

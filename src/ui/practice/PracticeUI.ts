@@ -39,7 +39,7 @@ export class PracticeUI {
  }
  anchor(x:number,y:number){this.panel.style.setProperty('--anchor-x',x+'px');this.panel.style.setProperty('--anchor-y',y+'px');}
  close(){this.root.classList.remove('start-screen');this.open=false;this.panel.hidden=true;this.active(false);this.onClose?.();this.onClose=undefined;}
- hud(menu:()=>void,help:()=>void){this.header.replaceChildren(this.button({label:'Планшет',run:menu}),this.button({label:'Управление',run:help,secondary:true}));this.header.hidden=false;}
+ hud(menu:()=>void,help:()=>void){this.header.replaceChildren(this.button({label:'Планшет',run:menu}),this.button({label:'Помощь',run:help,secondary:true}));this.header.hidden=false;}
  suspendHud(hidden:boolean){this.header.hidden=hidden;}
  setCue(text:string){this.cue.textContent=text;this.cue.hidden=!text;}
  toast(text:string){this.notice.textContent=text;this.notice.hidden=false;window.clearTimeout(this.timer);this.timer=window.setTimeout(()=>this.notice.hidden=true,5000);}

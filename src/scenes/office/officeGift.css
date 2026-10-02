@@ -11,3 +11,4 @@
 .office-finale{position:fixed;inset:0;z-index:20;background:#101c25;display:grid;place-items:center;padding:28px;box-sizing:border-box;pointer-events:none}
 .office-finale[hidden]{display:none}
 .office-finale h1{color:#f4eedf;text-align:center;max-width:760px;font:500 clamp(24px,5vw,44px)/1.4 system-ui;margin:0}
+.gift-letter-overlay article{overscroll-behavior:contain}

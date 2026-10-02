@@ -40,7 +40,7 @@ export class PracticeState {
   selectedDocuments: string[] = [];
   attachments: Partial<Record<'machine'|'stock', string>> = {};
   photos: Partial<Record<ShotId,Photo>> = {};
-  gallery: (Photo & {captureSlot:ShotId})[] = [];
+  gallery: (Photo & {captureSlot?:ShotId})[] = [];
   accepted: TaskId[] = [];
   reviewCount = 0;
   chatOrder = 0;
@@ -87,6 +87,13 @@ export class PracticeState {
   toggleRoute(id:TaskId) {
     this.route = this.route.includes(id) ? this.route.filter(x=>x!==id) : [...this.route,id];
   }
+  capturePhoto(photo:Photo){
+    // A capture is not evidence until the player assigns and sends it in chat.
+    const index=this.gallery.findIndex(p=>p.subject===photo.subject&&p.detail===photo.detail);
+    const replacement={...photo,sent:false,sentOrder:undefined};
+    if(index>=0)this.gallery[index]=replacement;else this.gallery.push(replacement);
+    if(this.gallery.length>5)this.gallery.shift();
+  }
   putPhoto(id:ShotId, photo:Photo) {
     this.photos[id] = {...photo, sent:false, sentOrder:undefined};
     const replacement={...photo,captureSlot:id,sent:false,sentOrder:undefined};
@@ -121,6 +128,12 @@ export class PracticeState {
     this.chat.push({order:++this.chatOrder,shot:task==='machine'?'machineView':'stockView',image:'',document:id,caption:task==='machine'?'Отправляю карточку оборудования ПР-204.':'Отправляю ведомость секции С-1.',response,accepted:ok});
     if(this.chat.length>12)this.chat.shift();
     return true;
+  }
+  get allMaterialsAccepted(){
+    return SHOTS.every(shot=>this.photoFeedback(shot.id).ok)&&(['machine','stock'] as const).every(task=>{
+      const doc=DOCUMENTS.find(d=>d.id===this.attachments[task]);
+      return !!doc&&doc.current&&doc.subject===(task==='machine'?'m204':'s1');
+    });
   }
   photoFeedback(id:ShotId): {ok:boolean;text:string} {
     const spec=SHOTS.find(x=>x.id===id)!;

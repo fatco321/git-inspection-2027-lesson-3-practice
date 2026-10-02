@@ -20,10 +20,10 @@ export class InspectionCamera {
  private move=(e:PointerEvent)=>{if(!this.active||!this.drag)return;this.camera.rotation.y+=e.movementX*.006;this.camera.rotation.x=Math.max(-.8,Math.min(.9,this.camera.rotation.x+e.movementY*.006));};
  private up=()=>{this.drag=false;if(this.pointer!==undefined&&this.canvas.hasPointerCapture(this.pointer))this.canvas.releasePointerCapture(this.pointer);this.pointer=undefined;};
  private wheel=(e:WheelEvent)=>{if(!this.active)return;e.preventDefault();this.camera.fov=Math.max(.28,Math.min(1.2,this.camera.fov+e.deltaY*.001));};
- capture(wide=false):Omit<Photo,'sent'|'image'>{
+ capture():Omit<Photo,'sent'|'image'>{
   const camera=this.camera,forward=camera.getForwardRay().direction;
   const overview=this.objects.find(x=>x.id==='workshop')!;const delta=overview.point.subtract(camera.position);
-  if(wide&&camera.position.z> -2.8&&camera.position.z<0.2&&delta.length()>3&&Vector3.Dot(delta.normalize(),forward)>.86&&camera.fov>.85)return {subject:'workshop',detail:false};
+  if(camera.position.z> -2.8&&camera.position.z<0.2&&delta.length()>3&&Vector3.Dot(delta.normalize(),forward)>.86&&camera.fov>.85)return {subject:'workshop',detail:false};
   const ranked=this.objects.filter(o=>o.id!=='workshop').map(o=>{
    const delta=o.label.subtract(camera.position),distance=delta.length(),labelDot=Vector3.Dot(delta.normalize(),forward);const objectDot=Vector3.Dot(o.point.subtract(camera.position).normalize(),forward);return {o,distance,labelDot,dot:Math.max(labelDot,objectDot)};
   }).filter(x=>x.dot>.9&&x.distance<6).sort((a,b)=>b.dot-a.dot);

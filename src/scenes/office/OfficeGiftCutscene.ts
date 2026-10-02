@@ -1,3 +1,4 @@
+import {saveCompletion} from '../../progress/saveCompletion';
 import {poseAtDesk} from './poseAtDesk';
 import type {Scene} from '@babylonjs/core/scene';
 import type {AssetContainer} from '@babylonjs/core/assetContainer';
@@ -56,7 +57,7 @@ export class OfficeGiftCutscene {
   this.thought.className='office-thought';this.thought.hidden=true;document.body.append(this.thought);
   this.letter.className='gift-letter-overlay';this.letter.hidden=true;
   const card=document.createElement('article'),text=document.createElement('p'),signature=document.createElement('p'),download=document.createElement('a');
-  text.textContent='Дорогой друг! Я рад, что теперь ты во всём разобрался: знаешь, где найти сведения о проверке, как организовать выполнение предписания и подготовиться к дистанционному осмотру. У меня для тебя подарок — инструкция по приложению «Инспектор». Если что-то забудешь или запутаешься в его работе, она поможет вспомнить нужные шаги. Пусть новые знания придают уверенности, а эта памятка всегда будет под рукой!';
+  text.textContent='Дорогой друг! Я рад, что теперь ты во всём разобрался: знаешь, где найти сведения о проверке, как организовать выполнение предписания и подготовиться к дистанционному осмотру. У меня для тебя подарок — инструкция по приложению «Мобильный Инспектор». Если что-то забудешь или запутаешься в его работе, она поможет вспомнить нужные шаги. Пусть новые знания придают уверенности, а эта памятка всегда будет под рукой!';
   signature.textContent='Твой проводник, Андрей';signature.className='gift-signature';
   download.textContent='Получить подарок';download.href=import.meta.env.BASE_URL+'downloads/MP_inspektor.pdf';download.download='Инструкция — Инспектор.pdf';
   download.addEventListener('click',()=>{if(this.received)return;this.received=true;this.closingTime=0;this.letter.hidden=true;this.gift.setEnabled(false);this.pose.update(0);this.scene.getEngine().getRenderingCanvas()?.focus({preventScroll:true});});
@@ -92,6 +93,7 @@ export class OfficeGiftCutscene {
   const point=Vector3.Project(this.hero.position.add(new Vector3(0,height,0)),Matrix.Identity(),this.scene.getTransformMatrix(),this.camera.viewport.toGlobal(engine.getRenderWidth(),engine.getRenderHeight()));
   this.thought.style.left=Math.max(130,Math.min(canvas.clientWidth-130,point.x*canvas.clientWidth/engine.getRenderWidth()))+'px';this.thought.style.top=Math.max(30,point.y*canvas.clientHeight/engine.getRenderHeight())+'px';
  }
+ private completionRecorded=false;
  private closing(dt:number){
   this.closingTime+=dt;const preview=import.meta.env.DEV?Number(new URLSearchParams(location.search).get('previewClosingTime')):0,t=preview>0?preview:this.closingTime;
   this.pose.update(0);this.gift.setEnabled(false);this.apply(this.idle,this.idle,0);
@@ -106,6 +108,7 @@ export class OfficeGiftCutscene {
   this.showThought(t>5.8&&t<9.5?'Это было удивительное приключение!':'',1.5);
   const fade=smooth((t-9.7)/2);this.finale.hidden=fade<=0;this.finale.style.opacity=String(fade);
   (this.finale.firstElementChild as HTMLElement).style.opacity=String(smooth((t-11.7)/1));
+  if(t>=12.7&&!this.completionRecorded){this.completionRecorded=true;saveCompletion('lesson-3-practice',this.finale);}
  }
  update(dt:number){
   if(this.received){this.closing(dt);return;}
@@ -126,7 +129,7 @@ export class OfficeGiftCutscene {
   this.squat(reach*(1-lift));
   this.pose.update(reach,.35*reach*(1-lift));
   this.lid.rotation.x=-1.95*smooth((t-16.7)/1.4);
-  const thought=t>1&&t<4.3?'Теперь я наконец разобрался. Всё встало на свои места.':t>5.5&&t<8?'Хм… Подарок? А это от кого?':'';
+  const thought=t>1&&t<4.3?'Теперь я наконец всему научился.':t>5.5&&t<8?'Хм… Подарок? А это от кого?':'';
   this.showThought(thought);
   if(t>=18.5){this.gift.setEnabled(false);this.pose.update(0);}
   if(t>=18.5&&this.letter.hidden){this.letter.hidden=false;this.letter.querySelector('a')?.focus({preventScroll:true});}

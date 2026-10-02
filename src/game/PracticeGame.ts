@@ -19,7 +19,6 @@ import { InspectionCamera } from '../scenes/workshop/InspectionCamera';
 import { PracticeWalk } from '../scenes/digital/PracticeWalk';
 import { PracticeEnding } from '../scenes/ending/PracticeEnding';
 import { PracticeFlow } from '../practice/PracticeFlow';
-import { SHOTS, type ShotId } from '../practice/PracticeState';
 import { createTablet } from '../scenes/workshop/createTablet';
 import { TabletPose } from '../scenes/characters/TabletPose';
 export class PracticeGame {
@@ -30,7 +29,7 @@ export class PracticeGame {
  private returnOffice?:ReturnOffice;
  private officeActive=false;
  private guide?:PreparationGuide;
- private capturing=false;private disposed=false;private canMove=false;private nearest='';private shot?:ShotId;
+ private capturing=false;private disposed=false;private canMove=false;private nearest='';
  readonly ready:Promise<void>;
  constructor(private canvas:HTMLCanvasElement){
   this.engine=new Engine(canvas,true,{preserveDrawingBuffer:true,stencil:true});this.engine.setHardwareScalingLevel(Math.max(1,window.devicePixelRatio/1.5));
@@ -46,7 +45,7 @@ export class PracticeGame {
   shadows.transparencyShadow=true;this.shadows=shadows;
   this.tablet=createTablet(this.scene,Vector3.Zero(),shadows);this.tablet.root.scaling.setAll(.48);this.tablet.root.setEnabled(false);
   createWorkshop(this.scene,shadows);this.loader=new ModelLoader(this.scene,shadows);
-  this.flow=new PracticeFlow(enabled=>this.controls(enabled),slot=>this.openCamera(slot),()=>this.finish(),()=>this.guide?.show());
+  this.flow=new PracticeFlow(enabled=>this.controls(enabled),()=>this.openCamera(),()=>this.finish(),()=>this.guide?.show());
   this.flow.ui.show('Проверка','',[{label:'Загрузка…',disabled:true,run:()=>{}}]);
   window.addEventListener('resize',this.resize);window.addEventListener('keydown',this.key);this.engine.runRenderLoop(this.render);this.ready=this.load();
  }
@@ -67,7 +66,7 @@ export class PracticeGame {
  private controls(enabled:boolean){
   this.canMove=enabled&&!this.capturing&&!this.lens?.active&&!this.ending;
   this.walk?.setEnabled(this.canMove);
-  if(this.canMove){this.camera.attachControl(this.canvas,true);this.canvas.focus({preventScroll:true});}else this.camera.detachControl();
+  if(this.canMove){this.camera.attachControl(this.canvas,false);this.canvas.focus({preventScroll:true});}else this.camera.detachControl();
  }
  private key=(e:KeyboardEvent)=>{
   if(e.code!=='Enter'||e.repeat||!this.canMove)return;
@@ -76,13 +75,13 @@ export class PracticeGame {
    ...(this.flow.state.phase!=='prepare'?[{label:'Открыть запросы',run:()=>this.flow.requests()}]:[]),{label:'Назад',secondary:true,run:()=>this.flow.ui.close()},
   ]);}
  };
- private openCamera(slot:ShotId){if(!this.flow.checkConnection(true))return;if(!this.lens||this.flow.state.phase==='prepare'||this.flow.state.photoFeedback(slot).ok)return;this.controls(false);this.shot=slot;this.lens.start();this.flow.ui.setCue('');this.flow.ui.cameraMode(SHOTS.find(s=>s.id===slot)!.label,()=>this.shoot(),()=>this.closeCamera());}
+ private openCamera(){if(!this.flow.checkConnection(true))return;if(!this.lens||this.lens.active||this.capturing)return;this.controls(false);this.lens.start();this.flow.ui.setCue('');this.flow.ui.cameraMode('Камера',()=>this.shoot(),()=>this.closeCamera());}
  private closeCamera(){this.lens?.stop();this.flow.ui.hideCamera();this.controls(true);}
  private async shoot(){
-  if(!this.lens||!this.shot||this.capturing)return;this.capturing=true;const photo=this.lens.capture(this.shot==='overview');
+  if(!this.lens?.active||this.capturing)return;this.capturing=true;const photo=this.lens.capture();
   this.scene.render();const preview=document.createElement('canvas');preview.width=Math.min(960,this.canvas.width);preview.height=Math.round(preview.width*this.canvas.height/this.canvas.width);preview.getContext('2d')!.drawImage(this.canvas,0,0,preview.width,preview.height);
   const image=preview.toDataURL('image/jpeg',.65);
-  this.flow.state.putPhoto(this.shot,{...photo,image,sent:false});
+  this.flow.state.capturePhoto({...photo,image,sent:false});
   this.lens.stop();this.controls(false);
   const finished=await this.flow.ui.flyPhoto(image);
   this.capturing=false;
@@ -115,7 +114,7 @@ export class PracticeGame {
   if(this.canMove&&this.hero){
    const pos=this.hero.position;const documents=Vector3.Distance(new Vector3(pos.x,0,pos.z),new Vector3(documentTable.x,0,documentTable.interactionZ))<1.35;
    const near=this.objects.filter(o=>o.id!=='workshop').map(o=>({o,d:Math.hypot(pos.x-o.label.x,pos.z-o.label.z)})).filter(x=>x.d<1.8).sort((a,b)=>a.d-b.d)[0];
-   const guideNear=this.flow.endingStage==='waiting'&&Math.hypot(pos.x-guideMeeting.x,pos.z-guideMeeting.z)<1.55;
+   const guideNear=this.guide?.ready&&this.flow.endingStage==='waiting'&&Math.hypot(pos.x-guideMeeting.x,pos.z-guideMeeting.z)<1.55;
    this.nearest=guideNear?'guide':this.flow.endingStage!=='none'?'':documents?'documents':near?.o.id??'';this.flow.ui.setCue(guideNear?'Enter — поговорить с Андреем':this.flow.endingStage!=='none'?'':documents?'Enter — документы мастерской':near?'Enter — осмотреть '+near.o.title:'');
   }else this.flow.ui.setCue('');
   this.scene.render();
@@ -139,5 +138,5 @@ export class PracticeGame {
  }
  private fitCamera(){const aspect=this.engine.getRenderWidth()/Math.max(1,this.engine.getRenderHeight());this.camera.fov=2*Math.atan(Math.tan(.4)*Math.max(1,.8/aspect));}
  private resize=()=>{this.engine.resize();this.fitCamera();this.returnOffice?.resize();};
- dispose(){if(this.disposed)return;this.disposed=true;this.engine.stopRenderLoop(this.render);window.removeEventListener('resize',this.resize);window.removeEventListener('keydown',this.key);this.returnOffice?.dispose();this.tabletPose?.dispose();this.tablet.dispose();this.lens?.dispose();this.ending?.dispose();this.walk?.dispose();this.flow.dispose();this.loader.dispose();this.scene.dispose();this.engine.dispose();}
+ dispose(){if(this.disposed)return;this.disposed=true;this.engine.stopRenderLoop(this.render);window.removeEventListener('resize',this.resize);window.removeEventListener('keydown',this.key);this.returnOffice?.dispose();this.tabletPose?.dispose();this.tablet.dispose();this.lens?.dispose();this.ending?.dispose();this.walk?.dispose();this.flow.dispose();this.guide?.dispose();this.loader.dispose();this.scene.dispose();this.engine.dispose();}
 }

@@ -1,6 +1,3 @@
-import './style.css';
-import { PracticeGame } from './game/PracticeGame';
-
-const canvas = document.querySelector<HTMLCanvasElement>('#game')!;
-const game = new PracticeGame(canvas);
-if (import.meta.hot) import.meta.hot.dispose(() => game.dispose());
+import {mountCourseAccess} from './progress/courseAccess';
+const dispose=mountCourseAccess('lesson-3-practice',()=>import('./bootstrap'));
+if(import.meta.hot)import.meta.hot.dispose(dispose);

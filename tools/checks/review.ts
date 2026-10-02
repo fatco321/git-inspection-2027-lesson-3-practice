@@ -30,3 +30,5 @@ add('Планшет',()=>{game.closeCamera();flow.menu();});
 add('Скрыть проверку',()=>bar.remove());
 
 add('Возврат: подарок',()=>{flow.ui.hideAll();game.controls(false);void game.arriveHome();});
+
+add('Прибытие Андрея',()=>{position(-1,2.3,new Vector3(1.1,1,2.3));flow.ui.hideAll();flow.endingStage='waiting';game.controls(true);game.camera.target.set(.3,.85,2.3);game.camera.radius=5;game.guide.show();});

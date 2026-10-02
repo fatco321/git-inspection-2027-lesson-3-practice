@@ -108,3 +108,21 @@ test('permission or profile changes require reconnect and preserve accepted evid
  s.setProfile('organisation');assert.ok(s.actionIssue());s.connect();
  assert.equal(s.actionIssue(),undefined);assert.deepEqual(s.accepted,accepted);assert.equal(JSON.stringify(s.photos),photos);
 });
+
+
+test('free camera replaces matching gallery frames without changing accepted evidence',()=>{
+ const s=filled();s.review();const accepted=[...s.accepted];const photos=JSON.stringify(s.photos);
+ s.capturePhoto({subject:'m204',detail:false,image:'new',sent:false});
+ assert.equal(s.gallery.find(p=>p.subject==='m204'&&!p.detail)?.image,'new');
+ assert.equal(JSON.stringify(s.photos),photos);assert.deepEqual(s.accepted,accepted);
+ for(const subject of ['m208','s2','s3','unknown'] as const)s.capturePhoto({subject,detail:false,image:subject,sent:false});
+ assert.ok(s.gallery.length<=5);
+});
+
+
+test('automatic completion requires all five accepted images and both current documents',()=>{
+ const s=filled();assert.equal(s.allMaterialsAccepted,true);
+ s.photos.stockLabel!.sent=false;assert.equal(s.allMaterialsAccepted,false);
+ s.photos.stockLabel!.sent=true;s.attachments.stock='s1-old';assert.equal(s.allMaterialsAccepted,false);
+ s.attachments.stock='s1';assert.equal(s.allMaterialsAccepted,true);
+});

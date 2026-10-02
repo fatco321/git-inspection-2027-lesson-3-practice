@@ -7,21 +7,26 @@ export class PracticeFlow {
  readonly dialogue:DialogueWindow;
  private started=false;
  endingStage:'none'|'waiting'|'talking'|'departing'='none';
- constructor(private controls:(enabled:boolean)=>void,private camera:(slot:ShotId)=>void,private ending:()=>void,private meeting:()=>void){
+ constructor(private controls:(enabled:boolean)=>void,private camera:()=>void,private ending:()=>void,private meeting:()=>void){
   this.ui=new PracticeUI(open=>this.controls(this.started&&!open&&!this.dialogue?.isOpen));
   this.dialogue=new DialogueWindow(open=>{this.ui.suspendHud(open);this.controls(this.started&&!open&&!this.ui.open);});
  }
  get tabletOpen(){return this.started&&(this.ui.open||(this.dialogue.isOpen&&this.endingStage!=='talking'));}
  ready(){
-  const start=()=>{this.started=true;this.ui.close();this.ui.hud(()=>this.menu(),()=>this.help());this.say(['В мастерской всё готово. В приглашении — три запроса. Сначала разберись, что мне нужно увидеть, осмотри помещения и подготовь материалы.','Сам выбери маршрут. В чате должны оказаться изображения и документы, которые относятся к одним и тем же объектам. Верно снятый чужой станок не подтвердит нужный.','Если понадобится помощь, обратись ко мне через планшет. Когда будешь готов, подключайся.'],()=>this.help());};
-  let prologue=false;try{prologue=!!localStorage.getItem('git-inspection-2027:lesson-3-prologue');}catch{}
-  if(!import.meta.env.DEV&&!prologue){
-   const panel=this.ui.show('Сначала пройдите пролог','После пролога продолжение откроется в этом браузере.',[{label:'Проверить прохождение',run:()=>this.ready()}]);const a=document.createElement('a');a.textContent='Открыть пролог';a.href='../git-inspection-2027-lesson-3-prologue/';a.target='_blank';a.rel='noopener';panel.append(a);return;
-  }
+  const start=()=>{this.started=true;this.ui.close();this.ui.hud(()=>this.menu(),()=>this.help());this.say(['В мастерской всё готово. В приглашении — три запроса. Сначала разберись, что мне нужно увидеть, осмотри помещения и подготовь материалы.','Сам выбери маршрут. В чате должны оказаться изображения и документы, которые относятся к одним и тем же объектам. Если ты сфотографируешь станок, который не требуется, я не приму это фото','Если понадобится помощь, обратись ко мне через планшет. Когда будешь готов, подключайся.'],()=>this.help());};
   this.ui.start([{label:'Начать',run:start}]);
  }
  say(lines:string[],next?:()=>void,lastLabel?:string){this.ui.close();this.dialogue.open(lines.map((text,index)=>({speaker:'Андрей',portrait:import.meta.env.BASE_URL+'images/characters/andrey-cartoon-v2.png',text,nextLabel:index===lines.length-1?lastLabel:undefined})),next);}
- help(){this.ui.show('Управление','Стрелки ↑ ↓ ← → — движение относительно камеры.\nПеретаскивайте мышью сцену, чтобы повернуть камеру; колесо меняет масштаб.\nEnter — взаимодействие с предметом рядом.\nВ планшете находятся приглашение, маршрут и материалы. В режиме съёмки сначала выберите позицию, затем направьте камеру мышью.',[{label:'Понятно',run:()=>this.ui.close()}]);}
+ help(){
+  const panel=this.ui.show('Помощь','Ваша задача — провести дистанционный осмотр мастерской и выполнить три запроса инспектора. Исследуйте помещения, собирайте материалы и отправляйте их Андрею через планшет.');
+  this.record(panel,'Управление','Используйте ↑ ↓ ← → для передвижения.\nЗажмите левую кнопку мыши и двигайте мышь, чтобы осмотреться. Прокрутите колёсико, чтобы приблизить или отдалить камеру.\nПодойдите к предмету или персонажу и нажмите Enter, когда появится подсказка.');
+  this.record(panel,'Планшет','Нажмите «Планшет», чтобы открыть приглашение, проверить запросы и составить свой маршрут. Перед осмотром подтвердите участие, настройте профиль и разрешения, затем подключитесь.\nЧтобы вернуться к передвижению, нажмите «Убрать планшет».');
+  this.record(panel,'Снимки и документы','Подойдите к объекту и откройте «Камеру» в планшете. Выберите ракурс мышью и нажмите «Сделать снимок». Фотография появится в галерее.\nДокументы ищите на столе в комнате подготовки. Прочитайте нужный документ и возьмите его в подборку.');
+  this.record(panel,'Отправка инспектору','Откройте «Чат» → «Прикрепить». Выберите фото или документ, затем реплику, которая объясняет, что вы отправляете.\nАндрей проверит материал. Если он не подходит, прочитайте ответ и попробуйте снова. Принятые материалы отмечаются галочкой в запросах инспектора — повторно отправлять их не нужно.');
+  this.record(panel,'Если застряли','Нажмите «Попросить подсказку» в планшете. Когда все материалы будут приняты, Андрей сам сообщит о завершении проверки и подскажет, куда идти дальше.');
+  this.ui.actions(panel,[{label:'Понятно',run:()=>this.ui.close()}]);
+ }
+
  menu(){
   if(this.endingStage!=='none'){this.ui.show('Андрей ждёт в комнате подготовки','Вернитесь в помещение со столом и документами.',[{label:'Назад',run:()=>this.ui.close()}]);return;}
   this.ui.menu('Инспектор · «Маяк»',this.state.phase==='prepare'?'Мероприятие ВКС-317 · мастерская\nПодготовка к подключению.':'Мероприятие ВКС-317 · Андрей',[
@@ -29,18 +34,18 @@ export class PracticeFlow {
    {label:'Профиль и разрешения',run:()=>this.settings()},
    {label:'Мой маршрут',run:()=>this.route()},
    {label:'Чат',run:()=>this.chat()},
+   {label:'Камера',run:()=>{this.ui.close();this.camera();}},
    ...(this.state.phase==='prepare'?[{label:'Подключиться',run:()=>this.connect()}]:[
     ...(this.state.reconnectRequired?[{label:'Подключиться',run:()=>this.connect()}]:[]),
     {label:'Запросы инспектора',run:()=>this.requests()},
     {label:'Журнал мероприятия',run:()=>this.journal()},
-    {label:'Передать комплект на проверку',run:()=>this.review()},
    ]),{label:'Попросить подсказку',run:()=>this.hint()},{label:'Убрать планшет',secondary:true,run:()=>this.ui.close()},
   ]);
  }
  private connect(){
   const resumed=this.state.phase!=='prepare';const issue=this.state.connect();
   if(issue){this.ui.toast(issue);return;}
-  this.say([resumed?'Связь восстановлена. Продолжим с того места, где остановились.':'Покажи запрошенные объекты в выбранном тобой порядке. Снимки и документы отправляй в чат этого мероприятия.'],()=>this.requests());
+  this.say([resumed?'Связь восстановлена. Продолжим с того места, где остановились.':'Покажи объекты, которые я запросил, в том порядке, в котором ты выбрал. Снимки и документы отправляй в чат этого мероприятия.'],()=>this.requests());
  }
  checkConnection(capture=false){
   const issue=this.state.actionIssue(capture);if(!issue)return true;
@@ -71,21 +76,20 @@ export class PracticeFlow {
   for(const doc of DOCUMENTS){const box=this.record(panel,doc.title,'');this.ui.actions(box,[{label:'Прочитать',run:()=>{this.ui.show(doc.title,doc.text,[{label:this.state.selectedDocuments.includes(doc.id)?'Убрать из подборки':'Взять в подборку',run:()=>{this.state.selectedDocuments=this.state.selectedDocuments.includes(doc.id)?this.state.selectedDocuments.filter(x=>x!==doc.id):[...this.state.selectedDocuments,doc.id];this.archive();}},{label:'Назад',secondary:true,run:()=>this.archive()}]);}}]);}
  }
  requests(){
-  const ordered=[...this.state.route,...TASKS.map(t=>t.id).filter(id=>!this.state.route.includes(id))];
-  const panel=this.ui.show('Запросы инспектора','Выберите, какой материал сейчас снимаете. Чтобы сменить позицию, уберите планшет и подойдите к объекту.',[{label:'Назад',secondary:true,run:()=>this.menu()}]);
-  for(const id of ordered){
-    const task=TASKS.find(t=>t.id===id)!;
-    const box=this.record(panel,task.title,task.request);
-    for(const shot of SHOTS.filter(s=>s.task===id)){
-      if(this.state.photoFeedback(shot.id).ok){
-        const row=document.createElement('div');row.className='request-photo-accepted';
-        const label=document.createElement('span');label.textContent=shot.label;
-        const status=document.createElement('strong');status.textContent='✓ Принято';
-        row.append(label,status);box.append(row);
-      }else{
-        this.ui.actions(box,[{label:'Камера: '+shot.label,run:()=>{this.ui.close();this.camera(shot.id);}}]);
-      }
-    }
+  const panel=this.ui.show('Запросы инспектора','',[{label:'Назад',secondary:true,run:()=>this.menu()}]);
+  const row=(parent:HTMLElement,label:string,accepted:boolean)=>{
+   const item=document.createElement('div');item.className='request-photo-accepted';
+   const name=document.createElement('span');name.textContent=label;
+   const status=document.createElement('strong');status.textContent=accepted?'✓ Принято':'□ Ожидает';
+   item.append(name,status);parent.append(item);
+  };
+  for(const task of TASKS){
+   const box=this.record(panel,task.title,task.request);
+   for(const shot of SHOTS.filter(s=>s.task===task.id))row(box,shot.label,this.state.photoFeedback(shot.id).ok);
+   if(task.id!=='overview'){
+    const doc=DOCUMENTS.find(d=>d.id===this.state.attachments[task.id as 'machine'|'stock']);
+    row(box,task.id==='machine'?'Действующая карточка оборудования':'Действующая ведомость секции',!!doc&&doc.current&&doc.subject===(task.id==='machine'?'m204':'s1'));
+   }
   }
  }
  chat(focusOrder?:number){
@@ -118,7 +122,7 @@ export class PracticeFlow {
     const img=document.createElement('img');img.src=photo.image;img.alt='';button.append(img);
     button.onclick=()=>this.composePhoto(index);grid.append(button);
   });
-  if(!this.state.gallery.length)this.ui.text(panel,'Пока нет фотографий. Сделайте снимок через запросы инспектора.');
+  if(!this.state.gallery.length)this.ui.text(panel,'Пока нет фотографий. Откройте камеру в меню планшета и сделайте снимок.');
  }
  private composePhoto(index:number,claim?:ShotId){
   const photo=this.state.gallery[index];if(!photo){this.photoGallery();return;}
@@ -126,7 +130,7 @@ export class PracticeFlow {
   const choices=this.ui.actions(panel,SHOTS.map(shot=>({label:PHOTO_REPLIES[shot.id],secondary:claim!==shot.id,disabled:this.state.photoFeedback(shot.id).ok,run:()=>this.composePhoto(index,shot.id)})));
   choices.classList.add('reply-choices');choices.setAttribute('aria-label','Что изображено на фото');
   Array.from(choices.querySelectorAll('button')).forEach((button,i)=>button.setAttribute('aria-pressed',String(claim===SHOTS[i].id)));
-  this.ui.actions(panel,[{label:'Отправить',disabled:!claim,run:()=>{if(claim&&this.checkConnection()&&this.state.sendGalleryPhoto(index,claim)){this.chat(this.state.chatOrder);}}},{label:'Назад',secondary:true,run:()=>this.photoGallery()}]);
+  this.ui.actions(panel,[{label:'Отправить',disabled:!claim,run:()=>{if(claim&&this.checkConnection()&&this.state.sendGalleryPhoto(index,claim)){this.afterSubmission();}}},{label:'Назад',secondary:true,run:()=>this.photoGallery()}]);
  }
  private documentPicker(){
   const panel=this.ui.show('Документы','',[{label:'Назад',secondary:true,run:()=>this.attachMenu()}]);
@@ -137,7 +141,10 @@ export class PracticeFlow {
   const doc=DOCUMENTS.find(d=>d.id===id)!;
   const panel=this.ui.show(doc.title,doc.text);
   this.ui.actions(panel,[{label:'Отправляю карточку оборудования ПР-204.',secondary:task!=='machine',run:()=>this.composeDocument(id,'machine')},{label:'Отправляю ведомость секции С-1.',secondary:task!=='stock',run:()=>this.composeDocument(id,'stock')}]);
-  this.ui.actions(panel,[{label:'Отправить',disabled:!task,run:()=>{if(task&&this.checkConnection()&&this.state.sendDocument(task,id)){this.chat(this.state.chatOrder);}}},{label:'Назад',secondary:true,run:()=>this.documentPicker()}]);
+  this.ui.actions(panel,[{label:'Отправить',disabled:!task,run:()=>{if(task&&this.checkConnection()&&this.state.sendDocument(task,id)){this.afterSubmission();}}},{label:'Назад',secondary:true,run:()=>this.documentPicker()}]);
+ }
+ private afterSubmission(){
+  if(this.state.allMaterialsAccepted)this.review();else this.chat(this.state.chatOrder);
  }
  private message(parent:HTMLElement,sender:string,text:string,status:string){
   const box=document.createElement('div');box.className='chat-message '+status;
@@ -155,7 +162,7 @@ export class PracticeFlow {
  meetGuide(){
   if(this.endingStage!=='waiting')return;
   this.endingStage='talking';this.controls(false);
-  this.say(['Молодец! Ты во всём разобрался: подготовился к осмотру, показал нужные объекты и передал подходящие фотографии и документы.','Наше путешествие подошло к концу. Теперь пора возвращаться домой. Готов? Я помогу тебе перенестись.'],()=>{
+  this.say(['Молодец! Ты во всём разобрался: подготовился к осмотру, показал нужные объекты и передал подходящие фотографии и документы.','Наше путешествие по цифровому миру охраны труда подошло к концу. Теперь пора возвращаться на работу. Готов? Я помогу тебе перенестись'],()=>{
    if(this.state.finish()){this.endingStage='departing';this.ui.hideAll();this.controls(false);this.ending();}
   },'Готов');
  }
