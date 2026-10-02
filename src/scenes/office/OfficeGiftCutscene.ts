@@ -61,7 +61,10 @@ export class OfficeGiftCutscene {
   signature.textContent='Твой проводник, Андрей';signature.className='gift-signature';
   download.textContent='Получить подарок';download.href=import.meta.env.BASE_URL+'downloads/MP_inspektor.pdf';download.download='Инструкция — Инспектор.pdf';
   download.addEventListener('click',()=>{if(this.received)return;this.received=true;this.closingTime=0;this.letter.hidden=true;this.gift.setEnabled(false);this.pose.update(0);this.scene.getEngine().getRenderingCanvas()?.focus({preventScroll:true});});
-  this.finale.className='office-finale';this.finale.hidden=true;this.finale.setAttribute('role','status');const finalText=document.createElement('h1');finalText.textContent='Это приключение подошло к концу';this.finale.append(finalText);document.body.append(this.finale);
+  this.finale.className='office-finale';this.finale.hidden=true;this.finale.setAttribute('role','status');const finalText=document.createElement('h1');finalText.textContent='Это приключение подошло к концу';const finalContent=document.createElement('div');finalContent.className='office-finale-content';
+  const wish=document.createElement('p');wish.className='office-finale-wish';wish.textContent='Желаю удачи на реальной проверке';
+  const finalSignature=document.createElement('p');finalSignature.className='office-finale-signature';finalSignature.textContent='— Андрей Криницын';
+  finalContent.append(finalText,wish,finalSignature);this.finale.append(finalContent);document.body.append(this.finale);
   card.append(text,signature,download);this.letter.append(card);this.letter.setAttribute('role','dialog');this.letter.setAttribute('aria-label','Письмо от Андрея');document.body.append(this.letter);
  }
  private apply(a:typeof this.idle,b:typeof this.idle,t:number){this.nodes.forEach((n,i)=>{Vector3.LerpToRef(a[i].p,b[i].p,t,n.position);n.rotationQuaternion??=Quaternion.Identity();Quaternion.SlerpToRef(a[i].q,b[i].q,t,n.rotationQuaternion);});}
@@ -105,7 +108,7 @@ export class OfficeGiftCutscene {
   const sit=smooth((t-3.65)/1.7);this.hero.position.z=.52+(.5-.52)*u+(.18-.5)*sit;
   if(t>=3.65){this.hero.rotation.y=Math.PI;this.apply(this.idle,this.seated,sit);}
   const chair=this.scene.getTransformNodeByName('chairDesk-pivot');if(chair)chair.position.z=.95+(.29-.95)*sit;
-  this.showThought(t>5.8&&t<9.5?'Это было удивительное приключение!':'',1.5);
+  this.showThought(t>5.8&&t<9.5?'Это было самое необычное обучение в моей жизни':'',1.5);
   const fade=smooth((t-9.7)/2);this.finale.hidden=fade<=0;this.finale.style.opacity=String(fade);
   (this.finale.firstElementChild as HTMLElement).style.opacity=String(smooth((t-11.7)/1));
   if(t>=12.7&&!this.completionRecorded){this.completionRecorded=true;saveCompletion('lesson-3-practice',this.finale);}

@@ -12,3 +12,8 @@
 .office-finale[hidden]{display:none}
 .office-finale h1{color:#f4eedf;text-align:center;max-width:760px;font:500 clamp(24px,5vw,44px)/1.4 system-ui;margin:0}
 .gift-letter-overlay article{overscroll-behavior:contain}
+
+.office-finale-content{width:min(100%,900px);text-align:center;color:#f4eedf}
+.office-finale h1{max-width:none;text-wrap:balance}
+.office-finale-wish{margin:clamp(24px,4vh,40px) 0 0;font:400 clamp(18px,3vw,28px)/1.45 system-ui;text-wrap:balance}
+.office-finale-signature{margin:12px 0 0;color:#a8c8ca;font:400 clamp(16px,2.2vw,21px)/1.4 system-ui}
