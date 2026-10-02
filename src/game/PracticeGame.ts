@@ -46,7 +46,6 @@ export class PracticeGame {
   this.tablet=createTablet(this.scene,Vector3.Zero(),shadows);this.tablet.root.scaling.setAll(.48);this.tablet.root.setEnabled(false);
   createWorkshop(this.scene,shadows);this.loader=new ModelLoader(this.scene,shadows);
   this.flow=new PracticeFlow(enabled=>this.controls(enabled),()=>this.openCamera(),()=>this.finish(),()=>this.guide?.show());
-  this.flow.ui.show('Проверка','',[{label:'Загрузка…',disabled:true,run:()=>{}}]);
   window.addEventListener('resize',this.resize);window.addEventListener('keydown',this.key);this.engine.runRenderLoop(this.render);this.ready=this.load();
  }
  private async load(){
@@ -61,7 +60,7 @@ export class PracticeGame {
    this.lens=new InspectionCamera(this.scene,this.canvas,this.camera,this.hero,this.objects);
    await this.scene.whenReadyAsync();if(this.disposed)return;
    this.flow.ready();
-  }catch(error){if(!this.disposed){console.error(error);this.flow.ui.show('Не удалось загрузить мастерскую','Обновите страницу, чтобы повторить загрузку.');}}
+  }catch(error){if(!this.disposed){this.dispose();throw error;}}
  }
  private controls(enabled:boolean){
   this.canMove=enabled&&!this.capturing&&!this.lens?.active&&!this.ending;
