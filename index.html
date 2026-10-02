@@ -15,6 +15,34 @@
       @keyframes loading-spin{to{transform:rotate(360deg)}}
       @media(prefers-reduced-motion:reduce){.loading-ring{animation:none}#game-loading{transition:none}}
     </style>
+      <script>
+      // Vite replaces the module tag, so listen before the generated entry loads.
+      (() => {
+        const isEntry = event => event.target instanceof HTMLScriptElement && event.target.type === 'module';
+        const cleanup = () => {
+          document.removeEventListener('error', failed, true);
+          document.removeEventListener('load', loaded, true);
+        };
+        const loaded = event => { if (isEntry(event)) cleanup(); };
+        const failed = event => {
+          if (!isEntry(event)) return;
+          cleanup();
+          const show = () => {
+            const panel = document.getElementById('game-loading');
+            if (!panel) return;
+            panel.hidden = false;
+            panel.querySelector('p').textContent = 'Не удалось загрузить игру. Проверьте соединение и попробуйте снова.';
+            panel.querySelector('.loading-ring').hidden = true;
+            panel.querySelector('button').hidden = false;
+            panel.setAttribute('aria-busy', 'false');
+          };
+          if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show, {once:true});
+          else show();
+        };
+        document.addEventListener('error', failed, true);
+        document.addEventListener('load', loaded, true);
+      })();
+    </script>
   </head>
   <body>
     <section id="game-loading" role="status" aria-live="polite" aria-busy="true">
@@ -25,6 +53,6 @@
     <div id="app">
       <canvas id="game" tabindex="0" aria-label="Практика третьего урока"></canvas>
     </div>
-    <script type="module" src="/src/main.ts" onerror="const p=document.getElementById('game-loading');p.querySelector('p').textContent='Не удалось загрузить игру. Проверьте соединение и попробуйте снова.';p.querySelector('.loading-ring').hidden=true;p.querySelector('button').hidden=false;p.setAttribute('aria-busy','false');"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
