@@ -9,7 +9,7 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { ModelLoader } from '../../assets/ModelLoader';
 import type { SubjectId } from '../../practice/PracticeState';
-export type InspectionObject={id:SubjectId;title:string;point:Vector3;label:Vector3;labelRight?:Vector3;root?:TransformNode};
+export type InspectionObject={id:SubjectId;title:string;point:Vector3;label:Vector3;labelRight?:Vector3;labelWidth?:number;labelHeight?:number;root?:TransformNode};
 export async function createCaseObjects(scene:Scene,loader:ModelLoader,shadows:ShadowGenerator) {
  const objects:InspectionObject[]=[];
  const plaque=(text:string,position:Vector3,width=.7,height=.24,rotation=Math.PI)=>{
@@ -23,11 +23,13 @@ export async function createCaseObjects(scene:Scene,loader:ModelLoader,shadows:S
   const model=await loader.load('machine-shop/'+file+'.glb',{x,y:.025,z,height,rotation:Math.PI/2},id);if(!model)return objects;
   const root=scene.getTransformNodeByName(id+'-pivot')!;
   let front=-Infinity;for(const m of root.getChildMeshes()){if(!m.getTotalVertices())continue;m.computeWorldMatrix(true);front=Math.max(front,m.getBoundingInfo().boundingBox.maximumWorld.x);m.metadata={subject:id};}
-  const label=new Vector3(front+.025,labelY,z);plaque(title,label,.42,.145,Math.PI*1.5);
-  objects.push({id,title,point:new Vector3(x,height*.5,z),label,labelRight:new Vector3(0,0,-1),root});
+  const labelWidth=.42,labelHeight=.145;
+  const label=new Vector3(front+.025,labelY,z);plaque(title,label,labelWidth,labelHeight,Math.PI*1.5);
+  objects.push({id,title,point:new Vector3(x,height*.5,z),label,labelRight:new Vector3(0,0,-1),labelWidth,labelHeight,root});
  }
  for(const [id,title,x] of [['s1','С-1',-3.8],['s2','С-2',-1.1],['s3','С-3',1.6]] as const){
-  const label=new Vector3(x,1.9,-10.28);plaque(title,label,.65,.23);objects.push({id,title,point:new Vector3(x,1,-10.7),label});
+  const labelWidth=.65,labelHeight=.23;
+  const label=new Vector3(x,1.9,-10.28);plaque(title,label,labelWidth,labelHeight);objects.push({id,title,point:new Vector3(x,1,-10.7),label,labelWidth,labelHeight});
  }
  // Replace plain carton placeholders with the downloaded textured crates.
  for(const m of [...scene.meshes])if(m.name==='stock carton'||m.name==='carton tape')m.dispose();

@@ -6,6 +6,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Ray } from '@babylonjs/core/Culling/ray';
 import type { InspectionObject } from './CaseObjects';
 import type { Photo } from '../../practice/PracticeState';
+import { assessLabelFrame } from './labelFraming';
 export class InspectionCamera {
  private readonly camera:FreeCamera;
  private drag=false;private pointer?:number;private hidden:{mesh:any;visibility:number}[]=[];
@@ -32,15 +33,10 @@ export class InspectionCamera {
    const {o,distance}=best;const ray=new Ray(camera.position,o.label.subtract(camera.position).normalize(),distance);
    const block=this.scene.pickWithRay(ray,m=>m.isEnabled()&&m.isVisible&&m.visibility>0&&m.name!=='__root__'&&!m.name.startsWith('label ')&&!m.name.includes('glass')&&!m.name.includes('window')&&!(m.material?.alpha!<1)&&m.metadata?.subject!==o.id&&!m.name.startsWith('floor')&&!m.name.includes('cabinet')&&!m.name.startsWith('stock')&&!m.name.startsWith('box-'));
    if(block?.hit&&block.distance<distance-.25)return {subject:o.id,detail:false,issue:'occluded'};
-   const detail=camera.fov<.7&&distance<2.6&&best.labelDot>.98;
-   if(detail){
-    const right=Vector3.Cross(Vector3.Up(),forward).normalize(),up=Vector3.Cross(forward,right).normalize();
-    const tan=Math.tan(camera.fov/2),aspect=this.canvas.width/this.canvas.height;
-    for(const x of [-.36,.36])for(const y of [-.13,.13]){
-     const d=o.label.add((o.labelRight??Vector3.Right()).scale(x)).add(new Vector3(0,y,0)).subtract(camera.position),depth=Vector3.Dot(d,forward);
-     if(depth<=0||Math.abs(Vector3.Dot(d,right))>depth*tan*aspect*.9||Math.abs(Vector3.Dot(d,up))>depth*tan*.9)return {subject:o.id,detail:true,issue:'labelCropped'};
-    }
-   }
+   const right=Vector3.Cross(Vector3.Up(),forward).normalize(),up=Vector3.Cross(forward,right).normalize();
+   const view=(v:Vector3)=>({x:Vector3.Dot(v,right),y:Vector3.Dot(v,up),z:Vector3.Dot(v,forward)});
+   const {detail,cropped}=assessLabelFrame(view(o.label.subtract(camera.position)),view(o.labelRight??Vector3.Right()),view(Vector3.Up()),o.labelWidth??.65,o.labelHeight??.23,camera.fov,this.canvas.clientWidth,this.canvas.clientHeight);
+   if(detail&&cropped)return {subject:o.id,detail:true,issue:'labelCropped'};
    if(!detail&&(distance<1.5||camera.fov<.7))return {subject:o.id,detail:false,issue:'objectCropped'};
    return {subject:o.id,detail};
   }

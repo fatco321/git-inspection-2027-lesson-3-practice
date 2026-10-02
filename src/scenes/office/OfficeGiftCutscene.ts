@@ -57,7 +57,7 @@ export class OfficeGiftCutscene {
   this.thought.className='office-thought';this.thought.hidden=true;document.body.append(this.thought);
   this.letter.className='gift-letter-overlay';this.letter.hidden=true;
   const card=document.createElement('article'),text=document.createElement('p'),signature=document.createElement('p'),download=document.createElement('a');
-  text.textContent='Дорогой друг! Я рад, что теперь ты во всём разобрался: знаешь, где найти сведения о проверке, как организовать выполнение предписания и подготовиться к дистанционному осмотру. У меня для тебя подарок — инструкция по приложению «Мобильный Инспектор». Если что-то забудешь или запутаешься в его работе, она поможет вспомнить нужные шаги. Пусть новые знания придают уверенности, а эта памятка всегда будет под рукой!';
+  text.textContent='Дорогой друг! Я рад, что теперь ты во всём разобрался: знаешь, где найти сведения о проверке, как организовать выполнение предписания и подготовиться к дистанционному осмотру. У меня для тебя подарок — инструкция по приложению «Инспектор». Если что-то забудешь или запутаешься в его работе, она поможет вспомнить нужные шаги. Пусть новые знания придают уверенности, а эта памятка всегда будет под рукой!';
   signature.textContent='Твой проводник, Андрей';signature.className='gift-signature';
   download.textContent='Получить подарок';download.href=import.meta.env.BASE_URL+'downloads/MP_inspektor.pdf';download.download='Инструкция — Инспектор.pdf';
   download.addEventListener('click',()=>{if(this.received)return;this.received=true;this.closingTime=0;this.letter.hidden=true;this.gift.setEnabled(false);this.pose.update(0);this.scene.getEngine().getRenderingCanvas()?.focus({preventScroll:true});});
