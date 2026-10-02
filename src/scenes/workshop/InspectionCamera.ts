@@ -6,7 +6,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Ray } from '@babylonjs/core/Culling/ray';
 import type { InspectionObject } from './CaseObjects';
 import type { Photo } from '../../practice/PracticeState';
-import { assessLabelFrame } from './labelFraming';
+import { assessLabelFrame, objectFitsFrame } from './labelFraming';
 export class InspectionCamera {
  private readonly camera:FreeCamera;
  private drag=false;private pointer?:number;private hidden:{mesh:any;visibility:number}[]=[];
@@ -36,8 +36,11 @@ export class InspectionCamera {
    const right=Vector3.Cross(Vector3.Up(),forward).normalize(),up=Vector3.Cross(forward,right).normalize();
    const view=(v:Vector3)=>({x:Vector3.Dot(v,right),y:Vector3.Dot(v,up),z:Vector3.Dot(v,forward)});
    const {detail,cropped}=assessLabelFrame(view(o.label.subtract(camera.position)),view(o.labelRight??Vector3.Right()),view(Vector3.Up()),o.labelWidth??.65,o.labelHeight??.23,camera.fov,this.canvas.clientWidth,this.canvas.clientHeight);
+   const corners=o.bounds?[o.bounds.min.x,o.bounds.max.x].flatMap(x=>[o.bounds!.min.y,o.bounds!.max.y].flatMap(y=>[o.bounds!.min.z,o.bounds!.max.z].map(z=>view(new Vector3(x,y,z).subtract(camera.position))))):[];
+   const whole=objectFitsFrame(corners,camera.fov,this.canvas.clientWidth,this.canvas.clientHeight);
+   if(whole)return {subject:o.id,detail:false,labelReadable:detail&&!cropped};
    if(detail&&cropped)return {subject:o.id,detail:true,issue:'labelCropped'};
-   if(!detail&&(distance<1.5||camera.fov<.7))return {subject:o.id,detail:false,issue:'objectCropped'};
+   if(!detail&&!whole)return {subject:o.id,detail:false,issue:'objectCropped'};
    return {subject:o.id,detail};
   }
   if(camera.position.z> -2.8&&camera.position.z<0.2&&delta.length()>3&&Vector3.Dot(delta.normalize(),forward)>.82&&camera.fov>.85)return {subject:'workshop',detail:false};

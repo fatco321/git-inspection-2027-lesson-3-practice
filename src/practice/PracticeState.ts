@@ -27,7 +27,7 @@ export const DOCUMENTS = [
 ];
 export const PHOTO_ISSUES = ['occluded','labelCropped','objectCropped','unrecognizable'] as const;
 export type PhotoIssue = typeof PHOTO_ISSUES[number];
-export type Photo = {subject:SubjectId|'unknown'; issue?:PhotoIssue; detail:boolean; image:string; sent:boolean; sentOrder?:number};
+export type Photo = {subject:SubjectId|'unknown'; issue?:PhotoIssue; detail:boolean; labelReadable?:boolean; image:string; sent:boolean; sentOrder?:number};
 const SUBJECT_NAMES: Record<SubjectId,string> = {workshop:'мастерская',m204:'ПР-204',m208:'ПР-208',s1:'С-1',s2:'С-2',s3:'С-3'};
 export type ChatPhoto = {order:number; shot:ShotId; image:string; response:string; accepted:boolean; caption?:string; document?:string};
 export type ReviewIssue = {task:TaskId; text:string};
@@ -153,7 +153,7 @@ export class PracticeState {
         ?'Не подходит: это отдельный объект. Мне нужен общий вид рабочего участка: оборудование и проход между рабочими местами.'
         :`Не подходит: на снимке ${SUBJECT_NAMES[photo.subject]}, а в запросе ${SUBJECT_NAMES[expected]}. Сверь обозначение на месте и сними нужный объект.`};
     }
-    if(photo.detail!==spec.detail){
+    if(spec.detail ? !(photo.labelReadable ?? photo.detail) : photo.detail){
       return {ok:false,text:spec.detail
         ?`Не подходит: маркировку ${SUBJECT_NAMES[expected]} на этом кадре нельзя разобрать. Подойди ближе и покажи обозначение целиком.`
         :'Не подходит: кадр слишком крупный: объект нельзя оценить целиком. Отойди и сними общий вид.'};

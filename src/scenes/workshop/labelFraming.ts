@@ -20,3 +20,10 @@ export function assessLabelFrame(center: Point, horizontal: Point, vertical: Poi
   const cropped = corners.some(p => Math.abs(p.x) > .98 || Math.abs(p.y) > .98);
   return { detail, cropped };
 }
+
+/** All physical object corners must fit; zoom and readable signage alone do not imply cropping. */
+export function objectFitsFrame(corners:Point[],fov:number,viewportWidth:number,viewportHeight:number){
+  const tan=Math.tan(fov/2),aspect=viewportWidth/viewportHeight;
+  return corners.length>0 && corners.every(p=>p.z>0 &&
+    Math.abs(p.x/(p.z*tan*aspect))<=1 && Math.abs(p.y/(p.z*tan))<=1);
+}

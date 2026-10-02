@@ -126,3 +126,13 @@ test('automatic completion requires all five accepted images and both current do
  s.photos.stockLabel!.sent=true;s.attachments.stock='s1-old';assert.equal(s.allMaterialsAccepted,false);
  s.attachments.stock='s1';assert.equal(s.allMaterialsAccepted,true);
 });
+
+test('readable shelf label does not invalidate a complete shelf photo',()=>{
+ const s=filled();
+ for(const id of ['stockView','stockLabel'] as const){
+  s.putPhoto(id,{subject:'s1',detail:false,labelReadable:true,image:'x',sent:false});
+  s.sendPhoto(id);assert.equal(s.photoFeedback(id).ok,true);
+ }
+ s.putPhoto('stockLabel',{subject:'s1',detail:false,labelReadable:false,image:'x',sent:false});
+ s.sendPhoto('stockLabel');assert.equal(s.photoFeedback('stockLabel').ok,false);
+});
