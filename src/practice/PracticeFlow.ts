@@ -1,4 +1,4 @@
-import { PracticeState, TASKS, SHOTS, DOCUMENTS, PHOTO_REPLIES, type ShotId, type TaskId } from './PracticeState';
+import { PracticeState, TASKS, SHOTS, DOCUMENTS, PHOTO_REPLIES, type ShotId } from './PracticeState';
 import { PracticeUI } from '../ui/practice/PracticeUI';
 import { DialogueWindow } from '../ui/dialogue/DialogueWindow';
 export class PracticeFlow {
@@ -13,27 +13,26 @@ export class PracticeFlow {
  }
  get tabletOpen(){return this.started&&(this.ui.open||(this.dialogue.isOpen&&this.endingStage!=='talking'));}
  ready(){
-  const start=()=>{this.started=true;this.ui.close();this.ui.hud(()=>this.menu(),()=>this.help());this.say(['В мастерской всё готово. В приглашении — три запроса. Сначала разберись, что мне нужно увидеть, осмотри помещения и подготовь материалы.','Сам выбери маршрут. В чате должны оказаться изображения и документы, которые относятся к одним и тем же объектам. Если ты сфотографируешь станок, который не требуется, я не приму это фото','Если понадобится помощь, обратись ко мне через планшет. Когда будешь готов, подключайся.'],()=>this.help());};
+  const start=()=>{this.started=true;this.ui.close();this.ui.hud(()=>this.menu(),()=>this.help());this.say(['В мастерской всё готово. После подключения я пришлю маршрут и три запроса. Сначала разберись, что мне нужно увидеть, осмотри помещения и подготовь материалы.','После подключения я пришлю в чат порядок осмотра. Следуй ему: заверши один запрос, прежде чем переходить к следующему. В чате должны оказаться изображения и документы, которые относятся к одним и тем же объектам. Если ты сфотографируешь станок, который не требуется, я не приму это фото','Если понадобится помощь, обратись ко мне через планшет. Когда будешь готов, подключайся.'],()=>this.help());};
   this.ui.start([{label:'Начать',run:start}]);
  }
  say(lines:string[],next?:()=>void,lastLabel?:string){this.ui.close();this.dialogue.open(lines.map((text,index)=>({speaker:'Андрей',portrait:import.meta.env.BASE_URL+'images/characters/andrey-cartoon-v2.png',text,nextLabel:index===lines.length-1?lastLabel:undefined})),next);}
  help(){
   const panel=this.ui.show('Помощь','Ваша задача — провести дистанционный осмотр мастерской и выполнить три запроса инспектора. Исследуйте помещения, собирайте материалы и отправляйте их Андрею через планшет.');
   this.record(panel,'Управление','Используйте ↑ ↓ ← → для передвижения.\nЗажмите левую кнопку мыши и двигайте мышь, чтобы осмотреться. Прокрутите колёсико, чтобы приблизить или отдалить камеру.\nПодойдите к предмету или персонажу и нажмите Enter, когда появится подсказка.');
-  this.record(panel,'Планшет','Нажмите «Планшет», чтобы открыть приглашение, проверить запросы и составить свой маршрут. Перед осмотром подтвердите участие, настройте профиль и разрешения, затем подключитесь.\nЧтобы вернуться к передвижению, нажмите «Убрать планшет».');
+  this.record(panel,'Планшет','Нажмите «Планшет», чтобы открыть приглашение. После подключения в чате появится маршрут, а в запросах инспектора — порядок осмотра. Перед осмотром подтвердите участие, настройте профиль и разрешения, затем подключитесь.\nЧтобы вернуться к передвижению, нажмите «Убрать планшет».');
   this.record(panel,'Снимки и документы','Подойдите к объекту и откройте «Камеру» в планшете. Выберите ракурс мышью и нажмите «Сделать снимок». Фотография появится в галерее.\nДокументы ищите на столе в комнате подготовки. Прочитайте нужный документ и возьмите его в подборку.');
   this.record(panel,'Отправка инспектору','Откройте «Чат» → «Прикрепить». Выберите фото или документ, затем реплику, которая объясняет, что вы отправляете.\nАндрей проверит материал. Если он не подходит, прочитайте ответ и попробуйте снова. Принятые материалы отмечаются галочкой в запросах инспектора — повторно отправлять их не нужно.');
-  this.record(panel,'Если застряли','Нажмите «Попросить подсказку» в планшете. Когда все материалы будут приняты, Андрей сам сообщит о завершении проверки и подскажет, куда идти дальше.');
+  this.record(panel,'Если застряли','Нажмите «Попросить подсказку» в планшете. Когда все материалы будут приняты, Андрей попросит подписать журнал мероприятия в Госключе. Откройте журнал в планшете и завершите подписание.');
   this.ui.actions(panel,[{label:'Понятно',run:()=>this.ui.close()}]);
  }
 
  menu(){
   if(this.endingStage!=='none'){this.ui.show('Андрей ждёт в комнате подготовки','Вернитесь в помещение со столом и документами.',[{label:'Назад',run:()=>this.ui.close()}]);return;}
   this.ui.menu('Инспектор · «Маяк»',this.state.phase==='prepare'?'Мероприятие ВКС-317 · мастерская\nПодготовка к подключению.':'Мероприятие ВКС-317 · Андрей',[
-   {label:'Приглашение и запросы',run:()=>this.invitation()},
+   {label:'Приглашение',run:()=>this.invitation()},
    {label:'Профиль и разрешения',run:()=>this.settings()},
-   {label:'Мой маршрут',run:()=>this.route()},
-   {label:'Чат',run:()=>this.chat()},
+   {label:'Чат',disabled:this.state.phase==='prepare',run:()=>this.chat()},
    {label:'Камера',run:()=>{this.ui.close();this.camera();}},
    ...(this.state.phase==='prepare'?[{label:'Подключиться',run:()=>this.connect()}]:[
     ...(this.state.reconnectRequired?[{label:'Подключиться',run:()=>this.connect()}]:[]),
@@ -43,9 +42,9 @@ export class PracticeFlow {
   ]);
  }
  private connect(){
-  const resumed=this.state.phase!=='prepare';const issue=this.state.connect();
+  const issue=this.state.connect();
   if(issue){this.ui.toast(issue);return;}
-  this.say([resumed?'Связь восстановлена. Продолжим с того места, где остановились.':'Покажи объекты, которые я запросил, в том порядке, в котором ты выбрал. Снимки и документы отправляй в чат этого мероприятия.'],()=>this.requests());
+  this.chat();
  }
  checkConnection(capture=false){
   const issue=this.state.actionIssue(capture);if(!issue)return true;
@@ -58,9 +57,10 @@ export class PracticeFlow {
   this.state.connectionMessage=issue;
   return false;
  }
- invitation(){const panel=this.ui.show('Приглашение · ВКС-317','Получатель: организация «Маяк». Объект: мастерская.\nИнспектор: Андрей Криницын.\nМатериалы передавайте в чат этого мероприятия.',[
+ invitation(){this.ui.show('Приглашение · ВКС-317','Получатель: организация «Маяк». Объект: мастерская.\nИнспектор: Андрей Криницын.\nМатериалы передавайте в чат этого мероприятия.',[
   {label:this.state.confirmed?'Участие подтверждено':'Подтвердить участие',disabled:this.state.confirmed,run:()=>{this.state.confirmed=true;this.invitation();}}, {label:'Назад',secondary:true,run:()=>this.menu()},
- ]);for(const t of TASKS){const box=this.record(panel,t.title,t.request);this.ui.actions(box,[{label:this.state.route.includes(t.id)?'Убрать из маршрута':'Добавить в маршрут',run:()=>{this.state.toggleRoute(t.id);this.invitation();},secondary:true}]);}}
+ ]);}
+
  settings(){const s=this.state;this.ui.show('Профиль и разрешения','Профиль: '+(s.profile==='organisation'?'организация «Маяк»':s.profile==='personal'?'личный':'не выбран'),[
   {label:'Личный профиль',secondary:s.profile!=='personal',run:()=>{s.setProfile('personal');this.settings();}},
   {label:'Организация «Маяк»',secondary:s.profile!=='organisation',run:()=>{s.setProfile('organisation');this.settings();}},
@@ -68,10 +68,6 @@ export class PracticeFlow {
   ...(s.reconnectRequired?[{label:'Подключиться',run:()=>this.connect()}]:[]),
   {label:'Назад',secondary:true,run:()=>this.menu()},
  ]);if(s.connectionMessage)this.ui.toast(s.connectionMessage);}
- route(){const panel=this.ui.show('Мой маршрут','Выберите пункты и расположите их в удобном порядке. В итоговом комплекте должны быть выполнены все запросы инспектора.',[{label:'Назад',secondary:true,run:()=>this.menu()}]);
-  this.state.route.forEach((id,i)=>{const t=TASKS.find(t=>t.id===id)!;const box=this.record(panel,`${i+1}. ${t.title}`,this.state.accepted.includes(id)?'Подтверждено инспектором':t.request);this.ui.actions(box,[{label:'Выше',disabled:i===0,run:()=>{[this.state.route[i-1],this.state.route[i]]=[id,this.state.route[i-1]];this.route();}},{label:'Убрать',secondary:true,run:()=>{this.state.toggleRoute(id);this.route();}}]);});
-  TASKS.filter(t=>!this.state.route.includes(t.id)).forEach(t=>this.ui.actions(panel,[{label:'Добавить: '+t.title,run:()=>{this.state.toggleRoute(t.id);this.route();}}]));
- }
  archive(){const panel=this.ui.show('Документы мастерской','Сверьте обозначения и редакции. Добавляйте нужные документы в подборку на планшете.',[{label:'Назад',secondary:true,run:()=>this.ui.close()}]);
   for(const doc of DOCUMENTS){const box=this.record(panel,doc.title,'');this.ui.actions(box,[{label:'Прочитать',run:()=>{this.ui.show(doc.title,doc.text,[{label:this.state.selectedDocuments.includes(doc.id)?'Убрать из подборки':'Взять в подборку',run:()=>{this.state.selectedDocuments=this.state.selectedDocuments.includes(doc.id)?this.state.selectedDocuments.filter(x=>x!==doc.id):[...this.state.selectedDocuments,doc.id];this.archive();}},{label:'Назад',secondary:true,run:()=>this.archive()}]);}}]);}
  }
@@ -83,8 +79,8 @@ export class PracticeFlow {
    const status=document.createElement('strong');status.textContent=accepted?'✓ Принято':'□ Ожидает';
    item.append(name,status);parent.append(item);
   };
-  for(const task of TASKS){
-   const box=this.record(panel,task.title,task.request);
+  for(const [index,task] of (this.state.route.length?this.state.route.map(id=>TASKS.find(t=>t.id===id)!):TASKS).entries()){
+   const box=this.record(panel,`${index+1}. ${task.title}`,(this.state.taskComplete(task.id)?'✓ Завершено':this.state.currentTask===task.id?'Сейчас осматриваем':'Следующий этап')+'\n'+task.request);
    for(const shot of SHOTS.filter(s=>s.task===task.id))row(box,shot.label,this.state.photoFeedback(shot.id).ok);
    if(task.id!=='overview'){
     const doc=DOCUMENTS.find(d=>d.id===this.state.attachments[task.id as 'machine'|'stock']);
@@ -93,11 +89,13 @@ export class PracticeFlow {
   }
  }
  chat(focusOrder?:number){
+  if(this.state.phase==='prepare'){this.menu();return;}
   const panel=this.ui.show('Чат','');panel.classList.add('chat-panel');
   const history=document.createElement('div');history.className='chat-history';
   let latest:HTMLElement|undefined;
   if(this.state.connectionMessage)this.message(history,'Андрей',this.state.connectionMessage,'correction');
   for(const entry of this.state.chat){
+    if(entry.notice){this.message(history,'Андрей',entry.response,'');continue;}
     const outgoing=this.message(history,'Вы',entry.caption??PHOTO_REPLIES[entry.shot],'outgoing');
     if(entry.document){const doc=DOCUMENTS.find(d=>d.id===entry.document);this.ui.text(outgoing,'▤ '+(doc?.title??'Документ'),'chat-file');}
     else this.ui.thumbnail(outgoing,entry.image,'Отправленное фото');
@@ -106,7 +104,7 @@ export class PracticeFlow {
   }
   if(!this.state.chat.length)this.ui.text(history,'Прикрепите фото или документ.');
   const footer=document.createElement('div');footer.className='chat-footer';
-  this.ui.actions(footer,[{label:'Прикрепить',disabled:this.state.phase==='prepare',run:()=>this.attachMenu()},{label:'Назад',secondary:true,run:()=>this.menu()}]);
+  this.ui.actions(footer,[{label:'Прикрепить',run:()=>this.attachMenu()},{label:'Назад',secondary:true,run:()=>this.menu()}]);
   panel.append(history,footer);
   if(latest)history.scrollTop=latest.offsetTop-history.offsetTop;else history.scrollTop=history.scrollHeight;
  }
@@ -151,11 +149,29 @@ export class PracticeFlow {
   const name=document.createElement('strong');name.textContent=sender;box.append(name);
   this.ui.text(box,text);parent.append(box);return box;
  }
- journal(){const panel=this.ui.show('Журнал мероприятия','Ответы и результаты фиксирует инспектор. Ниже — состояние переданных материалов.',[{label:'Назад',secondary:true,run:()=>this.menu()}]);for(const task of TASKS)this.record(panel,task.title,this.state.accepted.includes(task.id)?'Андрей: сведения подтверждены':'Ожидает сверки инспектором');}
+
+ journal(){
+  const ready=this.state.allMaterialsAccepted;
+  const panel=this.ui.show('Журнал мероприятия · ВКС-317','Организация «Маяк» · мастерская\nИнспектор: Андрей Криницын\n'+(this.state.journalSigned?'✓ Журнал подписан':ready?'Все материалы приняты. Журнал готов к подписанию.':'Осмотр продолжается. Подписание станет доступно после принятия всех материалов.'),[
+   {label:this.state.journalSigned?'Подписано':'Перейти в Госключ',disabled:!ready||this.state.journalSigned,run:()=>this.goskey()},
+   {label:'Назад',secondary:true,run:()=>this.menu()},
+  ]);
+  for(const task of TASKS)this.record(panel,task.title,this.state.taskComplete(task.id)?'✓ Материалы приняты':'Ожидает материалов');
+ }
+ private goskey(){
+  this.ui.show('Госключ','Журнал мероприятия ВКС-317\nОрганизация «Маяк» · мастерская\nВсе три запроса инспектора выполнены.\nПодпишите журнал, чтобы завершить мероприятие.',[
+   {label:'Подписать',run:()=>{
+    if(!this.checkConnection()||!this.state.signJournal())return;
+    this.say(['Журнал подписан. Осмотр завершён. Я жду тебя в комнате подготовки — там, где мы начали. Встретимся лично.'],()=>{
+     this.endingStage='waiting';this.ui.hideAll();this.meeting();this.controls(true);
+    });
+   }},
+   {label:'Назад',secondary:true,run:()=>this.journal()},
+  ]);
+ }
+
  review(){if(this.endingStage!=='none'){this.menu();return;}if(!this.checkConnection())return;const issues=this.state.review();if(!issues.length){
-  this.say(['Все три запроса подтверждены. Осмотр завершён. Я жду тебя в комнате подготовки — там, где мы начали. Встретимся лично.'],()=>{
-   this.endingStage='waiting';this.ui.hideAll();this.meeting();this.controls(true);
-  });return;
+  this.chat();return;
  }
   const panel=this.ui.show('Андрей · комплект требует уточнения','Подтверждённые пункты сохранены. Исправьте недостающие или несогласованные материалы и отправьте комплект повторно.',[{label:'Вернуться к осмотру',run:()=>this.ui.close()},{label:'Открыть чат',secondary:true,run:()=>this.chat()}]);for(const issue of issues)this.record(panel,TASKS.find(t=>t.id===issue.task)!.title,issue.text);
  }
@@ -168,9 +184,15 @@ export class PracticeFlow {
  }
  hint(){this.state.hints++;let text='Проверь не только то, что уже снято, но и то, что действительно попало в чат. Галерея и переданные материалы — разные вещи.';
   if(this.state.phase==='prepare')text='До звонка полезно сопоставить перечень запросов с тем, что есть в помещении. Одинаковые на вид установки могут иметь разные номера.';
-  else if(!this.state.photos.machineLabel)text='Общий вид рассказывает, как выглядит объект. Небольшая табличка рассказывает, какой именно это объект.';
-  else if(!this.state.selectedDocuments.length)text='Внешне одинаковые карточки могут относиться к разным годам и разным объектам. На столе есть сведения, которых не видно в камеру.';
-  else if(!this.state.photos.stockLabel)text='На складе ориентируйся на обозначение секции. Цвет коробок сам по себе ничего не подтверждает.';
+  else {
+   const task=this.state.currentTask;
+   if(task==='overview')text='Сейчас нужен взгляд на участок в целом: важно увидеть, как расположены рабочие места и что между ними.';
+   else if(task){
+    const label=task==='machine'?'machineLabel':'stockLabel';
+    if(!this.state.photoFeedback(label).ok)text='Общий вид рассказывает, как выглядит объект. Обозначение на табличке помогает понять, что это именно нужный объект.';
+    else text='Изображение — только часть подтверждения. Сверь обозначение и редакцию документа на столе и передай его в чат по текущему запросу.';
+   }
+  }
   this.say([text]);
  }
  private record(parent:HTMLElement,title:string,text:string){const box=document.createElement('div');box.className='record';const h=document.createElement('h2');h.textContent=title;box.append(h);if(text)this.ui.text(box,text);parent.append(box);return box;}

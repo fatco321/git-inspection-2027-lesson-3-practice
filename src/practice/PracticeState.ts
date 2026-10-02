@@ -29,7 +29,7 @@ export const PHOTO_ISSUES = ['occluded','labelCropped','objectCropped','unrecogn
 export type PhotoIssue = typeof PHOTO_ISSUES[number];
 export type Photo = {subject:SubjectId|'unknown'; issue?:PhotoIssue; detail:boolean; labelReadable?:boolean; image:string; sent:boolean; sentOrder?:number};
 const SUBJECT_NAMES: Record<SubjectId,string> = {workshop:'мастерская',m204:'ПР-204',m208:'ПР-208',s1:'С-1',s2:'С-2',s3:'С-3'};
-export type ChatPhoto = {order:number; shot:ShotId; image:string; response:string; accepted:boolean; caption?:string; document?:string};
+export type ChatPhoto = {notice?:boolean;order:number; shot:ShotId; image:string; response:string; accepted:boolean; caption?:string; document?:string};
 export type ReviewIssue = {task:TaskId; text:string};
 export class PracticeState {
   phase: 'prepare'|'call'|'review'|'done' = 'prepare';
@@ -43,6 +43,8 @@ export class PracticeState {
   gallery: (Photo & {captureSlot?:ShotId})[] = [];
   accepted: TaskId[] = [];
   reviewCount = 0;
+  journalSigned = false;
+  private signatureRequested = false;
   chatOrder = 0;
   chat: ChatPhoto[] = [];
   hints = 0;
@@ -81,11 +83,37 @@ export class PracticeState {
   }
   connect() {
     const issue = this.connectionIssue();
-    if (!issue){this.phase = 'call';this.reconnectRequired=false;this.connectionMessage='';}
+    if (!issue){if(!this.route.length)this.createRoute();this.phase = 'call';this.reconnectRequired=false;this.connectionMessage='';}
     return issue;
   }
-  toggleRoute(id:TaskId) {
-    this.route = this.route.includes(id) ? this.route.filter(x=>x!==id) : [...this.route,id];
+  private createRoute(){
+    this.route=TASKS.map(t=>t.id);
+    for(let i=this.route.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [this.route[i],this.route[j]]=[this.route[j],this.route[i]];
+    }
+    this.notice('Начнём осмотр. Наш маршрут: '+this.route.map((id,i)=>`${i+1}. ${TASKS.find(t=>t.id===id)!.title}`).join(' → ')+'. По каждому объекту сначала соберём все запрошенные материалы, затем перейдём дальше.');
+  }
+  taskComplete(task:TaskId){
+    return SHOTS.filter(s=>s.task===task).every(s=>this.photoFeedback(s.id).ok)
+      &&(task==='overview'||DOCUMENTS.some(d=>d.id===this.attachments[task]&&d.current&&d.subject===(task==='machine'?'m204':'s1')));
+  }
+  get currentTask(){return this.route.find(id=>!this.taskComplete(id));}
+  private notice(text:string){
+    this.chat.push({notice:true,order:++this.chatOrder,shot:'overview',image:'',response:text,accepted:false});
+    if(this.chat.length>12)this.chat.shift();
+  }
+  private routeBlocked(task:TaskId){
+    const current=this.currentTask;
+    if(!current||current===task)return false;
+    this.notice('Мы тут ещё не закончили: «'+TASKS.find(t=>t.id===current)!.title+'». Сначала передай все материалы по этому запросу. Что ещё осталось — посмотри в запросах инспектора.');
+    return true;
+  }
+  private advanceRoute(previous:TaskId|undefined){
+    if(previous&&this.taskComplete(previous)){
+      const next=this.currentTask;
+      this.notice(next?'По этому объекту всё принято. Теперь переходим к запросу «'+TASKS.find(t=>t.id===next)!.title+'».':'Все объекты маршрута пройдены, материалы приняты.');
+    }
   }
   capturePhoto(photo:Photo){
     // A capture is not evidence until the player assigns and sends it in chat.
@@ -104,29 +132,37 @@ export class PracticeState {
   sendPhoto(id:ShotId) {
     const photo=this.photos[id];
     if(!photo||photo.sent||this.actionIssue())return false;
+    if(this.routeBlocked(SHOTS.find(s=>s.id===id)!.task))return true;
+    const previous=this.currentTask;
     photo.sent=true;photo.sentOrder=++this.chatOrder;
     const feedback=this.photoFeedback(id);
     this.chat.push({order:this.chatOrder,shot:id,image:photo.image,response:feedback.text,accepted:feedback.ok});
     if(this.chat.length>12)this.chat.shift();
     this.invalidate(SHOTS.find(x=>x.id===id)!.task);
+    this.advanceRoute(previous);
     return true;
   }
   sendGalleryPhoto(index:number,claim:ShotId){
     const photo=this.gallery[index];
     if(!photo||this.actionIssue()||this.photoFeedback(claim).ok)return false;
+    if(this.routeBlocked(SHOTS.find(s=>s.id===claim)!.task))return true;
     this.photos[claim]={...photo,sent:false,sentOrder:undefined};
     const sent=this.sendPhoto(claim);
-    if(sent)this.chat[this.chat.length-1].caption=PHOTO_REPLIES[claim];
+    if(sent){const entry=[...this.chat].reverse().find(e=>!e.notice&&e.shot===claim);if(entry)entry.caption=PHOTO_REPLIES[claim];}
     return sent;
   }
   sendDocument(task:'machine'|'stock',id:string){
-    if(this.actionIssue()||!this.attach(task,id))return false;
+    if(this.actionIssue())return false;
+    if(this.routeBlocked(task))return true;
+    const previous=this.currentTask;
+    if(!this.attach(task,id))return false;
     const doc=DOCUMENTS.find(d=>d.id===id)!;
     const expected=task==='machine'?'m204':'s1';
     const ok=doc.subject===expected&&doc.current;
     const response=doc.subject!==expected?'Не подходит: документ относится к другому объекту. Сверь его обозначение с запросом.':!doc.current?'Не подходит: это архивная редакция. Нужен действующий документ.':'Документ подходит: объект и действующая редакция совпадают с запросом.';
     this.chat.push({order:++this.chatOrder,shot:task==='machine'?'machineView':'stockView',image:'',document:id,caption:task==='machine'?'Отправляю карточку оборудования ПР-204.':'Отправляю ведомость секции С-1.',response,accepted:ok});
     if(this.chat.length>12)this.chat.shift();
+    this.advanceRoute(previous);
     return true;
   }
   get allMaterialsAccepted(){
@@ -168,7 +204,7 @@ export class PracticeState {
     if (!this.selectedDocuments.includes(id)) return false;
     this.attachments[task]=id; this.invalidate(task); return true;
   }
-  private invalidate(task:TaskId) {this.accepted=this.accepted.filter(x=>x!==task); if(this.phase==='review')this.phase='call';}
+  private invalidate(task:TaskId) {this.journalSigned=false;this.accepted=this.accepted.filter(x=>x!==task); if(this.phase==='review')this.phase='call';}
   review(): ReviewIssue[] {
     const issues:ReviewIssue[]=[];
     const check=(task:TaskId, subject:SubjectId, slots:ShotId[])=>{
@@ -192,7 +228,18 @@ export class PracticeState {
     check('machine','m204',['machineView','machineLabel']);
     check('stock','s1',['stockView','stockLabel']);
     this.reviewCount++; this.phase=issues.length?'call':'review';
+    if(!issues.length&&!this.signatureRequested){
+      this.signatureRequested=true;
+      this.notice('Все материалы приняты! Теперь осталось подписать журнал мероприятия в Госключе. Открой «Журнал мероприятия» в планшете, проверь результаты и перейди к подписанию.');
+    }
     return issues;
   }
-  finish() {if(this.phase==='review'&&this.accepted.length===3){this.phase='done';return true;}return false;}
+  signJournal(){
+    if(this.actionIssue()||!this.allMaterialsAccepted||this.journalSigned)return false;
+    if(this.review().length)return false;
+    this.journalSigned=true;
+    this.notice('Журнал подписан. Теперь всё готово! Я жду тебя в комнате подготовки — там, где мы начали.');
+    return true;
+  }
+  finish() {if(this.phase==='review'&&this.accepted.length===3&&this.journalSigned){this.phase='done';return true;}return false;}
 }

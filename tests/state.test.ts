@@ -7,8 +7,7 @@ test('wrong object is accepted as draft but rejected at review',()=>{const s=fil
 test('local photo does not count as sent',()=>{const s=filled();s.photos.stockView!.sent=false;assert.match(s.review().find(x=>x.task==='stock')!.text,/чате/);});
 test('archive edition fails even with correct object',()=>{const s=filled();s.selectedDocuments.push('m204-old');s.attach('machine','m204-old');assert.match(s.review().find(x=>x.task==='machine')!.text,/архивная/);assert.equal(s.finish(),false);});
 test('a close-up cannot replace a general view',()=>{const s=filled();s.photos.machineView!.detail=true;assert.ok(s.review().some(x=>x.text.includes('слишком крупный')));});
-test('corrected submission keeps other evidence and completes',()=>{const s=filled();s.photos.machineView!.subject='m208';s.review();s.photos.machineView!.subject='m204';assert.deepEqual(s.review(),[]);assert.equal(s.reviewCount,2);assert.equal(s.finish(),true);assert.equal(s.phase,'done');});
-test('route is not an answer key and incomplete route cannot waive requests',()=>{const s=new PracticeState();s.toggleRoute('stock');assert.equal(s.review().some(x=>x.task==='machine'),true);const valid=filled();valid.route=['stock'];assert.deepEqual(valid.review(),[]);});
+test('corrected submission keeps other evidence and completes',()=>{const s=filled();s.photos.machineView!.subject='m208';s.review();s.photos.machineView!.subject='m204';assert.deepEqual(s.review(),[]);assert.equal(s.reviewCount,2);assert.equal(s.finish(),false);assert.equal(s.signJournal(),true);assert.equal(s.finish(),true);assert.equal(s.phase,'done');});
 test('a file cannot be sent without collecting it',()=>{const s=new PracticeState();assert.equal(s.attach('machine','m204'),false);assert.equal(s.attachments.machine,undefined);});
 
 test('chat immediately explains a wrong object and accepts a corrected photo',()=>{
@@ -135,4 +134,29 @@ test('readable shelf label does not invalidate a complete shelf photo',()=>{
  }
  s.putPhoto('stockLabel',{subject:'s1',detail:false,labelReadable:false,image:'x',sent:false});
  s.sendPhoto('stockLabel');assert.equal(s.photoFeedback('stockLabel').ok,false);
+});
+
+test('route is a complete permutation and survives reconnection',()=>{
+ const s=new PracticeState();s.profile='organisation';s.confirmed=true;s.permissions={camera:true,microphone:true,location:true};
+ s.connect();assert.deepEqual([...s.route].sort(),['machine','overview','stock']);const route=[...s.route];
+ s.setPermission('camera',false);s.setPermission('camera',true);s.connect();assert.deepEqual(s.route,route);
+});
+test('route blocks early documents and photos; current object needs its document',()=>{
+ const s=new PracticeState();s.phase='call';s.profile='organisation';s.permissions={camera:true,microphone:true,location:true};
+ s.route=['machine','stock','overview'];s.selectedDocuments=['m204','s1','m204-old'];
+ s.sendDocument('stock','s1');assert.equal(s.attachments.stock,undefined);assert.match(s.chat.at(-1)!.response,/ещё не закончили/);
+ s.capturePhoto({subject:'s1',detail:false,sent:false,image:'x'});s.sendGalleryPhoto(0,'stockView');assert.equal(s.photos.stockView,undefined);
+ for(const id of ['machineView','machineLabel'] as const){s.putPhoto(id,{subject:'m204',detail:id==='machineLabel',sent:false,image:'x'});s.sendPhoto(id);}
+ assert.equal(s.currentTask,'machine');
+ s.sendDocument('machine','m204-old');assert.equal(s.currentTask,'machine');
+ s.sendDocument('machine','m204');assert.equal(s.currentTask,'stock');
+ assert.match(s.chat.at(-1)!.response,/Секция хранения/);
+});
+
+test('journal signing requires all accepted materials and working connection',()=>{
+ const empty=new PracticeState();assert.equal(empty.signJournal(),false);assert.equal(empty.finish(),false);
+ const s=filled();s.review();assert.equal(s.finish(),false);
+ s.setPermission('camera',false);assert.equal(s.signJournal(),false);
+ s.setPermission('camera',true);s.connect();assert.equal(s.signJournal(),true);
+ assert.equal(s.signJournal(),false);assert.equal(s.finish(),true);
 });

@@ -3,7 +3,7 @@ import {PracticeGame} from '../../src/game/PracticeGame';
 import {Vector3} from '@babylonjs/core/Maths/math.vector';
 const game=new PracticeGame(document.querySelector('canvas')!) as any;
 await game.ready;
-const flow=game.flow;flow.ui.close();flow.started=true;flow.state.phase='call';flow.state.profile='organisation';flow.state.confirmed=true;flow.state.permissions={camera:true,microphone:true,location:true};flow.ui.hud(()=>flow.menu(),()=>flow.help());game.controls(true);
+const flow=game.flow;flow.ui.close();flow.started=true;flow.state.phase='call';flow.state.profile='organisation';flow.state.confirmed=true;flow.state.permissions={camera:true,microphone:true,location:true};flow.state.connect();flow.ui.hud(()=>flow.menu(),()=>flow.help());game.controls(true);
 const bar=document.createElement('nav');bar.style.cssText='position:fixed;right:6px;top:60px;display:flex;gap:4px;flex-direction:column;z-index:99';document.body.append(bar);
 function add(label:string,fn:()=>void){const b=document.createElement('button');b.textContent=label;b.onclick=fn;bar.append(b);}
 function position(x:number,z:number,aim:Vector3){game.closeCamera();flow.ui.close();game.hero.position.x=x;game.hero.position.z=z;game.hero.rotation.y=Math.atan2(aim.x-x,aim.z-z);game.camera.target.copyFrom(game.hero.position.add(new Vector3(0,.8,0)));}
@@ -32,3 +32,9 @@ add('Скрыть проверку',()=>bar.remove());
 add('Возврат: подарок',()=>{flow.ui.hideAll();game.controls(false);void game.arriveHome();});
 
 add('Прибытие Андрея',()=>{position(-1,2.3,new Vector3(1.1,1,2.3));flow.ui.hideAll();flow.endingStage='waiting';game.controls(true);game.camera.target.set(.3,.85,2.3);game.camera.radius=5;game.guide.show();});
+
+add('Журнал: подписание',()=>{
+ const s=flow.state;s.route=['overview','machine','stock'];s.profile='organisation';s.confirmed=true;s.permissions={camera:true,microphone:true,location:true};s.reconnectRequired=false;s.phase='call';s.selectedDocuments=['m204','s1'];
+ for(const [id,subject,detail] of [['overview','workshop',false],['machineView','m204',false],['machineLabel','m204',true],['stockView','s1',false],['stockLabel','s1',true]] as const)s.photos[id]={subject,detail,sent:true,image:''};
+ s.attachments={machine:'m204',stock:'s1'};flow.review();
+});
